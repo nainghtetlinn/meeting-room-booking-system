@@ -17,7 +17,7 @@ export class BookingsService {
     @InjectRepository(Booking) private bookingRepo: Repository<Booking>,
     @InjectRepository(User) private userRepo: Repository<User>,
     private abilityFactory: AbilityFactory,
-  ) {}
+  ) { }
 
   async create(createBookingDto: CreateBookingDto, currentUser: User) {
     const { startTime, endTime } = createBookingDto;
@@ -46,7 +46,11 @@ export class BookingsService {
   }
 
   findAll() {
-    return this.bookingRepo.find();
+    return this.bookingRepo.find({
+      relations: {
+        user: true
+      }
+    });
   }
 
   async findBookingsGroupedByUser(currentUser: User) {

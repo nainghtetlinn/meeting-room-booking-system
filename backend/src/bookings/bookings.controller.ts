@@ -2,6 +2,8 @@ import { Body, Controller, Delete, Get, Param, Post } from '@nestjs/common';
 import { ApiOperation } from '@nestjs/swagger';
 import { BookingsService } from './bookings.service';
 import { CreateBookingDto } from './dto/create-booking.dto';
+import { GetUser } from 'src/decorators/get-user.decorator';
+import { User } from 'src/users/entities/user.entity';
 
 @Controller('bookings')
 export class BookingsController {
@@ -9,8 +11,8 @@ export class BookingsController {
 
   @ApiOperation({ summary: 'Create booking' })
   @Post()
-  create(@Body() createBookingDto: CreateBookingDto) {
-    return this.bookingsService.create(5, createBookingDto);
+  create(@GetUser() user: User, @Body() createBookingDto: CreateBookingDto) {
+    return this.bookingsService.create(createBookingDto, user);
   }
 
   @ApiOperation({ summary: 'View all bookings' })
@@ -33,7 +35,7 @@ export class BookingsController {
 
   @ApiOperation({ summary: 'Delete booking' })
   @Delete(':id')
-  remove(@Param('id') id: number) {
-    return this.bookingsService.remove(id);
+  remove(@GetUser() user: User, @Param('id') id: number) {
+    return this.bookingsService.remove(id, user);
   }
 }

@@ -31,11 +31,11 @@ export class AbilityFactory {
     );
 
     if (user.role === UserRole.ADMIN) {
-      can(Action.Manage, 'all'); // Admins can do everything (User management + Bookings)
+      can(Action.Manage, 'all');
     } else if (user.role === UserRole.OWNER) {
       can(Action.Read, 'all');
       can(Action.Create, Booking);
-      can(Action.Delete, Booking); // Owner can delete ANY booking per Page 2 of requirements
+      can(Action.Delete, Booking);
       cannot(Action.Manage, User).because(
         'Owners are not authorized to manage user accounts.',
       );

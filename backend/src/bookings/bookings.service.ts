@@ -5,6 +5,8 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { AbilityFactory, Action } from 'src/ability/ability.factory';
+import { User } from 'src/users/entities/user.entity';
 import { UsersService } from 'src/users/users.service';
 import { LessThan, MoreThan, Repository } from 'typeorm';
 import { CreateBookingDto } from './dto/create-booking.dto';
@@ -15,9 +17,10 @@ export class BookingsService {
   constructor(
     @InjectRepository(Booking) private bookingRepo: Repository<Booking>,
     private usersService: UsersService,
+    private abilityFactory: AbilityFactory,
   ) {}
 
-  async create(userId: number, createBookingDto: CreateBookingDto) {
+  async create(createBookingDto: CreateBookingDto, currentUser: User) {
     const { startTime, endTime } = createBookingDto;
 
     if (startTime >= endTime) {
@@ -38,7 +41,7 @@ export class BookingsService {
     }
 
     return this.bookingRepo.save({
-      userId,
+      userId: currentUser.id,
       ...createBookingDto,
     });
   }
@@ -56,8 +59,9 @@ export class BookingsService {
     });
   }
 
-  async remove(id: number) {
+  async remove(id: number, currentUser: User) {
     const booking = await this.findById(id);
+    this.abilityFactory.checkPermission(currentUser, Action.Delete, booking);
     return this.bookingRepo.remove(booking);
   }
 

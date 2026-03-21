@@ -1,9 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
-import { format } from "date-fns";
-import { api } from "#/lib/api";
-import { toast } from "sonner";
-import { Calendar, Clock, UserIcon, Users } from "lucide-react";
-import { Button } from "#/components/ui/button";
+import { Badge } from "#/components/ui/badge";
 import {
   Card,
   CardContent,
@@ -11,6 +6,7 @@ import {
   CardHeader,
   CardTitle,
 } from "#/components/ui/card";
+import { Skeleton } from "#/components/ui/skeleton";
 import {
   Table,
   TableBody,
@@ -19,11 +15,14 @@ import {
   TableHeader,
   TableRow,
 } from "#/components/ui/table";
-import { Badge } from "#/components/ui/badge";
-import { Skeleton } from "#/components/ui/skeleton";
+import { api } from "#/lib/api";
+import type { Booking } from "#/types";
+import { format } from "date-fns";
+import { Calendar, Clock, UserIcon } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
 import { CreateBookingDialog } from "./CreateBookingDialog";
 import { DeleteBookingDialog } from "./DeleteBookingDialog";
-import type { Booking } from "#/types";
 
 type GroupedUser = {
   id: number;
@@ -164,8 +163,8 @@ export function OwnerDashboard() {
                   className="border rounded-xl p-4"
                 >
                   <div className="flex items-center justify-between mb-3">
-                    <div className="font-semibold text-zinc-800 dark:text-zinc-100">
-                      {user.name}
+                    <div className="font-semibold flex items-center gap-2 text-zinc-800 dark:text-zinc-100">
+                      <UserIcon /> {user.name}
                     </div>
                     <Badge
                       variant="secondary"
@@ -183,7 +182,8 @@ export function OwnerDashboard() {
                           key={booking.id}
                           className="rounded-lg bg-zinc-50 dark:bg-zinc-900 p-2"
                         >
-                          <div className="text-sm text-zinc-700 dark:text-zinc-200">
+                          <div className="text-sm flex items-center gap-2 text-zinc-700 dark:text-zinc-200">
+                            <Clock className="size-4" />{" "}
                             {format(
                               new Date(booking.startTime),
                               "MMM d, yyyy h:mm a",

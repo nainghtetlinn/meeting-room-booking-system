@@ -15,6 +15,16 @@ async function bootstrap() {
   const config = new DocumentBuilder()
     .setTitle('Meeting Room Booking System')
     .setVersion('1.0')
+    .addApiKey(
+      {
+        type: 'apiKey',
+        name: 'x-user-id',
+        in: 'header',
+        description: 'Enter a valid User ID from your database',
+      },
+      'x-user-id',
+    )
+    .addSecurityRequirements('x-user-id')
     .build();
   const documentFactory = () => SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, documentFactory);

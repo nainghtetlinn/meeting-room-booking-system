@@ -1,15 +1,17 @@
 import { ConfigifyModule } from '@itgorillaz/configify';
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { AbilityModule } from './ability/ability.module';
 import { BookingsModule } from './bookings/bookings.module';
+import { Booking } from './bookings/entities/booking.entity';
 import { AppConfig } from './config';
 import { User } from './users/entities/user.entity';
 import { UsersModule } from './users/users.module';
-import { Booking } from './bookings/entities/booking.entity';
+import { APP_GUARD } from '@nestjs/core';
+import { AuthGuard } from './guards/auth.guard';
 
 @Module({
   imports: [
-    ConfigifyModule.forRootAsync(),
     TypeOrmModule.forRootAsync({
       inject: [AppConfig],
       useFactory: (config: AppConfig) => {
@@ -25,8 +27,17 @@ import { Booking } from './bookings/entities/booking.entity';
         };
       },
     }),
+    ConfigifyModule.forRootAsync(),
+    TypeOrmModule.forFeature([User]),
     UsersModule,
     BookingsModule,
+    AbilityModule,
+  ],
+  providers: [
+    {
+      provide: APP_GUARD,
+      useClass: AuthGuard,
+    },
   ],
 })
 export class AppModule {}

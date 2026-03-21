@@ -24,12 +24,13 @@ import {
 import { api } from "#/lib/api";
 import type { Booking, User, UserRole } from "#/types";
 import { format } from "date-fns";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { CreateUserDialog } from "./CreateUserDialog";
 import { DeleteBookingDialog } from "./DeleteBookingDialog";
 import { DeleteUserDialog } from "./DeleteUserDialog";
 import { Skeleton } from "./ui/skeleton";
+import { Calendar } from "lucide-react";
 
 export function AdminDashboard() {
   const [users, setUsers] = useState<User[]>([]);
@@ -63,6 +64,7 @@ export function AdminDashboard() {
       setSubmitting(true);
       await api.patch(`/users/${userId}`, { role });
       toast.success("User role updated");
+      await fetchData();
     } catch (error) {
       console.error("Update role failed", error);
       toast.error("Failed to update user role");
@@ -70,6 +72,8 @@ export function AdminDashboard() {
       setSubmitting(false);
     }
   };
+
+  const totalBookings = useMemo(() => bookings.length, [bookings]);
 
   if (isLoading) {
     return (
@@ -198,6 +202,11 @@ export function AdminDashboard() {
           </Table>
         </CardContent>
       </Card>
+
+      <div className="text-sm text-zinc-500">
+        <Calendar className="inline-block mr-1" /> {totalBookings} total
+        bookings
+      </div>
     </div>
   );
 }

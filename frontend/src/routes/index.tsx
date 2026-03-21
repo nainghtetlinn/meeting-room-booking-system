@@ -1,5 +1,4 @@
 import { AdminDashboard } from "#/components/AdminDashboard";
-import { BookingsList } from "#/components/BookingsList";
 import { OwnerDashboard } from "#/components/OwnerDashboard";
 import { Badge } from "#/components/ui/badge";
 import { Button } from "#/components/ui/button";
@@ -57,12 +56,6 @@ function App() {
               <Button>Continue</Button>
             </CardContent>
           </Card>
-        )}
-
-        {user?.role !== "admin" && (
-          <div className="mt-8">
-            <BookingsList />
-          </div>
         )}
       </div>
     </main>

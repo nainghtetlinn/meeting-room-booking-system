@@ -12,6 +12,7 @@ import {
 import { Field, FieldGroup, FieldLabel } from "#/components/ui/field";
 import { api } from "#/lib/api";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { AxiosError } from "axios";
 import { Calendar as CalendarIcon, Plus } from "lucide-react";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
@@ -83,7 +84,9 @@ export function CreateBookingDialog({ onSuccess }: CreateBookingDialogProps) {
       onSuccess();
     } catch (error) {
       console.error("Booking failed", error);
-      toast.error("Failed to create booking. Please try again.");
+      if (error instanceof AxiosError) {
+        toast.error(error.response?.data.message || "Something went wrong");
+      }
     } finally {
       setSubmitting(false);
     }

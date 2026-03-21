@@ -10,6 +10,7 @@ import {
 } from "#/components/ui/dialog";
 import { api } from "#/lib/api";
 import type { Booking } from "#/types";
+import { AxiosError } from "axios";
 import { format } from "date-fns";
 import { Trash2 } from "lucide-react";
 import { useState } from "react";
@@ -35,7 +36,9 @@ export function DeleteBookingDialog({
       onSuccess();
     } catch (error) {
       console.error("Delete booking failed", error);
-      toast.error("Failed to delete booking");
+      if (error instanceof AxiosError) {
+        toast.error(error.response?.data.message || "Something went wrong");
+      }
     } finally {
       setSubmitting(false);
     }

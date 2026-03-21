@@ -10,6 +10,7 @@ import {
 } from "#/components/ui/dialog";
 import { api } from "#/lib/api";
 import type { User } from "#/types";
+import { AxiosError } from "axios";
 import { Trash2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -31,7 +32,9 @@ export function DeleteUserDialog({ user, onSuccess }: DeleteUserDialogProps) {
       onSuccess();
     } catch (error) {
       console.error("Delete user failed", error);
-      toast.error("Failed to delete user");
+      if (error instanceof AxiosError) {
+        toast.error(error.response?.data.message || "Something went wrong");
+      }
     } finally {
       setSubmitting(false);
     }

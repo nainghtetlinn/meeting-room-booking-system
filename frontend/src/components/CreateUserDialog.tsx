@@ -21,6 +21,7 @@ import {
 import { api } from "#/lib/api";
 import type { User } from "#/types";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { AxiosError } from "axios";
 import { Plus } from "lucide-react";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
@@ -60,7 +61,9 @@ export function CreateUserDialog({ onSuccess }: CreateUserDialogProps) {
       onSuccess();
     } catch (error) {
       console.error("Create user failed", error);
-      toast.error("Failed to create user");
+      if (error instanceof AxiosError) {
+        toast.error(error.response?.data.message || "Something went wrong");
+      }
     } finally {
       setSubmitting(false);
     }

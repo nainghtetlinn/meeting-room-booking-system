@@ -22,15 +22,15 @@ export class BookingsController {
   }
 
   @ApiOperation({ summary: 'View bookings grouped by user' })
-  @Get('/user/:id')
-  findBookingsByUserId(@Param('id') id: number) {
-    return this.bookingsService.findAllByUserId(id);
+  @Get('/grouped')
+  grouped(@GetUser() user: User) {
+    return this.bookingsService.findBookingsGroupedByUser(user);
   }
 
   @ApiOperation({ summary: 'View basic usage summary' })
   @Get('/summary')
-  summary() {
-    return this.bookingsService.getUsageSummary();
+  summary(@GetUser() user: User) {
+    return this.bookingsService.getUsageSummary(user);
   }
 
   @ApiOperation({ summary: 'Delete booking' })

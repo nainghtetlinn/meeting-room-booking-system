@@ -7,7 +7,6 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { AbilityFactory, Action } from 'src/ability/ability.factory';
 import { User } from 'src/users/entities/user.entity';
-import { UsersService } from 'src/users/users.service';
 import { LessThan, MoreThan, Repository } from 'typeorm';
 import { CreateBookingDto } from './dto/create-booking.dto';
 import { Booking } from './entities/booking.entity';
@@ -16,7 +15,7 @@ import { Booking } from './entities/booking.entity';
 export class BookingsService {
   constructor(
     @InjectRepository(Booking) private bookingRepo: Repository<Booking>,
-    private usersService: UsersService,
+    @InjectRepository(User) private userRepo: Repository<User>,
     private abilityFactory: AbilityFactory,
   ) {}
 
@@ -50,37 +49,49 @@ export class BookingsService {
     return this.bookingRepo.find();
   }
 
-  async findAllByUserId(userId: number) {
-    const user = await this.usersService.findById(userId);
-    return this.bookingRepo.find({
-      where: {
-        userId: user.id,
+  async findBookingsGroupedByUser(currentUser: User) {
+    this.abilityFactory.checkPermission(
+      currentUser,
+      Action.ReadSummary,
+      Booking,
+    );
+    return await this.userRepo.find({
+      relations: {
+        bookings: true,
+      },
+      order: {
+        name: 'ASC',
+        bookings: {
+          startTime: 'DESC',
+        },
       },
     });
+  }
+
+  async getUsageSummary(currentUser: User) {
+    this.abilityFactory.checkPermission(
+      currentUser,
+      Action.ReadSummary,
+      Booking,
+    );
+    return await this.bookingRepo
+      .createQueryBuilder('booking')
+      .leftJoin('booking.user', 'user')
+      .select([
+        'user.id AS "userId"',
+        'user.name AS "userName"',
+        'COUNT(booking.id) AS "totalBookings"',
+      ])
+      .groupBy('user.id')
+      .addGroupBy('user.name')
+      .orderBy('"totalBookings"', 'DESC')
+      .getRawMany();
   }
 
   async remove(id: number, currentUser: User) {
     const booking = await this.findById(id);
     this.abilityFactory.checkPermission(currentUser, Action.Delete, booking);
     return this.bookingRepo.remove(booking);
-  }
-
-  async getUsageSummary() {
-    const bookings = await this.bookingRepo.find({
-      relations: ['user'], // Join the user data
-      order: {
-        userId: 'ASC',
-        startTime: 'DESC',
-      },
-    });
-
-    // Transform the flat list into a grouped object
-    return bookings.reduce((acc, booking) => {
-      const userName = booking.user.name;
-      if (!acc[userName]) acc[userName] = [];
-      acc[userName].push(booking);
-      return acc;
-    }, {});
   }
 
   async findById(id: number) {

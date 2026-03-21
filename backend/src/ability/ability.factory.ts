@@ -17,6 +17,7 @@ export enum Action {
   Read = 'read',
   Update = 'update',
   Delete = 'delete',
+  ReadSummary = 'read_summary',
 }
 
 type Subjects = InferSubjects<typeof User | typeof Booking> | 'all';
@@ -36,6 +37,8 @@ export class AbilityFactory {
       can(Action.Read, 'all');
       can(Action.Create, Booking);
       can(Action.Delete, Booking);
+      can(Action.ReadSummary, Booking);
+
       cannot(Action.Manage, User).because(
         'Owners are not authorized to manage user accounts.',
       );
@@ -43,6 +46,10 @@ export class AbilityFactory {
       can(Action.Read, Booking);
       can(Action.Create, Booking);
       can(Action.Delete, Booking, { userId: user.id });
+
+      cannot(Action.ReadSummary, Booking).because(
+        'Usage summaries are only available to Owners and Admins.',
+      );
       cannot(Action.Delete, Booking, { userId: { $ne: user.id } }).because(
         'Users can only delete their own bookings.',
       );

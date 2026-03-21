@@ -1,13 +1,5 @@
-import { api } from "#/lib/api";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useState } from "react";
-import { Controller, useForm } from "react-hook-form";
-import { toast } from "sonner";
-import * as z from "zod";
-
 import { Button } from "#/components/ui/button";
 import { Calendar } from "#/components/ui/calendar";
-import { Card, CardContent, CardFooter } from "#/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -17,18 +9,15 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "#/components/ui/dialog";
-import {
-  Field,
-  FieldError,
-  FieldGroup,
-  FieldLabel,
-} from "#/components/ui/field";
-import {
-  InputGroup,
-  InputGroupAddon,
-  InputGroupInput,
-} from "#/components/ui/input-group";
-import { Calendar as CalendarIcon, Clock2Icon } from "lucide-react";
+import { Field, FieldGroup, FieldLabel } from "#/components/ui/field";
+import { api } from "#/lib/api";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Calendar as CalendarIcon, Plus } from "lucide-react";
+import { useState } from "react";
+import { Controller, useForm } from "react-hook-form";
+import { toast } from "sonner";
+import * as z from "zod";
+import { Input } from "./ui/input";
 
 const bookingSchema = z
   .object({
@@ -54,34 +43,28 @@ const bookingSchema = z
     },
   );
 
-type BookingFormValues = z.infer<typeof bookingSchema>;
+type BookingData = z.infer<typeof bookingSchema>;
 
-export function CreateBookingDialog({
-  children,
-  onSuccess,
-}: {
-  children: React.ReactNode;
-  onSuccess?: () => void;
-}) {
+type CreateBookingDialogProps = {
+  onSuccess: () => void;
+};
+
+export function CreateBookingDialog({ onSuccess }: CreateBookingDialogProps) {
   const [open, setOpen] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
-  const {
-    register,
-    handleSubmit,
-    control,
-    reset,
-    formState: { errors, isSubmitting },
-  } = useForm<BookingFormValues>({
-    resolver: zodResolver(bookingSchema as any),
+  const form = useForm({
+    resolver: zodResolver(bookingSchema),
     defaultValues: {
       date: new Date(),
-      startTime: "10:30:00",
-      endTime: "12:30:00",
+      startTime: "",
+      endTime: "",
     },
   });
 
-  const onSubmit = async (data: BookingFormValues) => {
+  const handleCreateBooking = async (data: BookingData) => {
     try {
+      setSubmitting(true);
       const start = new Date(data.date);
       const [sh, sm, ss] = data.startTime.split(":");
       start.setHours(Number(sh), Number(sm), Number(ss || 0), 0);
@@ -96,32 +79,31 @@ export function CreateBookingDialog({
       });
       toast.success("Meeting room booked successfully!");
       setOpen(false);
-      reset();
-      if (onSuccess) {
-        onSuccess();
-      }
+      form.reset();
+      onSuccess();
     } catch (error) {
       console.error("Booking failed", error);
       toast.error("Failed to create booking. Please try again.");
+    } finally {
+      setSubmitting(false);
     }
   };
 
   return (
     <Dialog
       open={open}
-      onOpenChange={(val) => {
-        setOpen(val);
-        if (!val) reset();
-      }}
+      onOpenChange={setOpen}
     >
-      <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="sm:max-w-md bg-zinc-50 dark:bg-zinc-950 p-6">
-        <DialogHeader className="mb-4">
+      <DialogTrigger asChild>
+        <Button>
+          <Plus className="h-4 w-4 mr-2" />
+          Add Booking
+        </Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <CalendarIcon
-              className="text-blue-500"
-              size={20}
-            />
+            <CalendarIcon size={20} />
             Book a Meeting Room
           </DialogTitle>
           <DialogDescription>
@@ -130,105 +112,84 @@ export function CreateBookingDialog({
         </DialogHeader>
 
         <form
-          onSubmit={handleSubmit(onSubmit)}
-          className="space-y-4"
+          id="booking-form"
+          onSubmit={form.handleSubmit(handleCreateBooking)}
         >
-          <Card className="mx-auto w-fit shadow-sm border border-zinc-200 dark:border-zinc-800 rounded-xl overflow-hidden bg-white dark:bg-zinc-900">
-            <CardContent className="p-0">
-              <Controller
-                control={control}
-                name="date"
-                render={({ field }) => (
-                  <Calendar
-                    mode="single"
-                    selected={field.value}
-                    onSelect={field.onChange}
-                    className="p-3"
+          <div className="flex justify-center mb-4">
+            <Controller
+              control={form.control}
+              name="date"
+              render={({ field }) => (
+                <Calendar
+                  mode="single"
+                  selected={field.value}
+                  onSelect={field.onChange}
+                  className="p-3"
+                />
+              )}
+            />
+          </div>
+          <FieldGroup className="flex-row items-center w-full gap-4">
+            <Controller
+              control={form.control}
+              name="startTime"
+              render={({ field, fieldState }) => (
+                <Field
+                  className="flex-1"
+                  aria-invalid={fieldState.invalid}
+                >
+                  <FieldLabel htmlFor="startTime">Start Time</FieldLabel>
+                  <Input
+                    type="time"
+                    id="startTime"
+                    step={1}
+                    aria-invalid={fieldState.invalid}
+                    className="appearance-none bg-background [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none"
+                    {...field}
                   />
-                )}
-              />
-            </CardContent>
-            <CardFooter className="border-t border-zinc-100 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 flex-col gap-4 p-4">
-              <FieldGroup className="flex-row items-center w-full gap-4">
-                <Field className="flex-1 space-y-2">
-                  <FieldLabel
-                    htmlFor="startTime"
-                    className="text-xs uppercase tracking-wider text-zinc-500 font-semibold shadow-none"
-                  >
-                    Start Time
-                  </FieldLabel>
-                  <InputGroup>
-                    <InputGroupInput
-                      id="startTime"
-                      type="time"
-                      step="1"
-                      {...register("startTime")}
-                      className="appearance-none pr-8 [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none bg-white dark:bg-zinc-950"
-                    />
-                    <InputGroupAddon>
-                      <Clock2Icon
-                        size={16}
-                        className="text-zinc-400"
-                      />
-                    </InputGroupAddon>
-                  </InputGroup>
                 </Field>
-
-                <Field className="flex-1 space-y-2">
-                  <FieldLabel
-                    htmlFor="endTime"
-                    className="text-xs uppercase tracking-wider text-zinc-500 font-semibold shadow-none"
-                  >
-                    End Time
-                  </FieldLabel>
-                  <InputGroup>
-                    <InputGroupInput
-                      id="endTime"
-                      type="time"
-                      step="1"
-                      {...register("endTime")}
-                      className="appearance-none pr-8 [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none bg-white dark:bg-zinc-950"
-                    />
-                    <InputGroupAddon>
-                      <Clock2Icon
-                        size={16}
-                        className="text-zinc-400"
-                      />
-                    </InputGroupAddon>
-                  </InputGroup>
+              )}
+            />
+            <Controller
+              control={form.control}
+              name="endTime"
+              render={({ field, fieldState }) => (
+                <Field
+                  className="flex-1"
+                  aria-invalid={fieldState.invalid}
+                >
+                  <FieldLabel htmlFor="endTime">End Time</FieldLabel>
+                  <Input
+                    type="time"
+                    id="endTime"
+                    step={1}
+                    aria-invalid={fieldState.invalid}
+                    className="appearance-none bg-background [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none"
+                    {...field}
+                  />
                 </Field>
-              </FieldGroup>
-
-              <div className="w-full flex justify-between gap-2 mt-2">
-                {errors.date && <FieldError>{errors.date.message}</FieldError>}
-                {errors.startTime && (
-                  <FieldError>{errors.startTime.message}</FieldError>
-                )}
-                {errors.endTime && (
-                  <FieldError>{errors.endTime.message}</FieldError>
-                )}
-              </div>
-            </CardFooter>
-          </Card>
-
-          <DialogFooter className="pt-4 border-t border-zinc-100 dark:border-zinc-800">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setOpen(false)}
-              className="rounded-lg"
-            >
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              disabled={isSubmitting}
-              className="rounded-lg bg-blue-600 hover:bg-blue-700 text-white"
-            >
-              {isSubmitting ? "Booking..." : "Confirm Booking"}
-            </Button>
-          </DialogFooter>
+              )}
+            />
+          </FieldGroup>
         </form>
+
+        <DialogFooter>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => setOpen(false)}
+            disabled={submitting}
+          >
+            Cancel
+          </Button>
+          <Button
+            type="submit"
+            form="booking-form"
+            disabled={submitting}
+          >
+            {submitting ? "Booking..." : "Confirm Booking"}
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

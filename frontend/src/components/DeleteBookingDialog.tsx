@@ -77,6 +77,7 @@ export function DeleteBookingDialog({
         <DialogFooter>
           <Button
             variant="outline"
+            onClick={() => setOpen(false)}
             disabled={submitting}
           >
             Cancel

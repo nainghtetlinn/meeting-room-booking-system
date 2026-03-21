@@ -1,18 +1,19 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { Button } from "#/components/ui/button";
-
-import { useAuth } from "#/lib/AuthContext";
 import { AdminDashboard } from "#/components/AdminDashboard";
 import { BookingsList } from "#/components/BookingsList";
+import { OwnerDashboard } from "#/components/OwnerDashboard";
+import { Badge } from "#/components/ui/badge";
+import { Button } from "#/components/ui/button";
 import {
   Card,
+  CardAction,
+  CardContent,
+  CardDescription,
   CardHeader,
   CardTitle,
-  CardDescription,
-  CardContent,
-  CardAction,
 } from "#/components/ui/card";
-import { Badge } from "#/components/ui/badge";
+import { useAuth } from "#/lib/AuthContext";
+import { createFileRoute } from "@tanstack/react-router";
+
 export const Route = createFileRoute("/")({ component: App });
 
 function App() {
@@ -42,6 +43,8 @@ function App() {
 
         {user?.role === "admin" ? (
           <AdminDashboard />
+        ) : user?.role === "owner" ? (
+          <OwnerDashboard />
         ) : (
           <Card>
             <CardHeader>

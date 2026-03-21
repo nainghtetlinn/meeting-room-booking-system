@@ -13,6 +13,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { ApiOperation } from '@nestjs/swagger';
 import { GetUser } from 'src/decorators/get-user.decorator';
 import { User } from './entities/user.entity';
+import { Public } from 'src/decorators/public.decorator';
 
 @Controller('users')
 export class UsersController {
@@ -44,5 +45,12 @@ export class UsersController {
   @Get()
   findAll(@GetUser() user: User) {
     return this.usersService.findAll(user);
+  }
+
+  @ApiOperation({ summary: 'List of users to login' })
+  @Public()
+  @Get('/list')
+  listUsers() {
+    return this.usersService.listUsers();
   }
 }

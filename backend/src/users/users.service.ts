@@ -45,6 +45,10 @@ export class UsersService {
     return this.userRepo.find();
   }
 
+  listUsers() {
+    return this.userRepo.find();
+  }
+
   async findById(id: number) {
     const user = await this.userRepo.findOneBy({
       id,

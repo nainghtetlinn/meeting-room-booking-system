@@ -10,7 +10,7 @@ export class BookingsController {
   @ApiOperation({ summary: 'Create booking' })
   @Post()
   create(@Body() createBookingDto: CreateBookingDto) {
-    return this.bookingsService.create(createBookingDto);
+    return this.bookingsService.create(5, createBookingDto);
   }
 
   @ApiOperation({ summary: 'View all bookings' })
@@ -19,9 +19,21 @@ export class BookingsController {
     return this.bookingsService.findAll();
   }
 
+  @ApiOperation({ summary: 'View bookings grouped by user' })
+  @Get('/user/:id')
+  findBookingsByUserId(@Param('id') id: number) {
+    return this.bookingsService.findAllByUserId(id);
+  }
+
+  @ApiOperation({ summary: 'View basic usage summary' })
+  @Get('/summary')
+  summary() {
+    return this.bookingsService.getUsageSummary();
+  }
+
   @ApiOperation({ summary: 'Delete booking' })
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.bookingsService.remove(+id);
+  remove(@Param('id') id: number) {
+    return this.bookingsService.remove(id);
   }
 }

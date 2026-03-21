@@ -1,26 +1,89 @@
-import { Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { UsersService } from 'src/users/users.service';
+import { LessThan, MoreThan, Repository } from 'typeorm';
 import { CreateBookingDto } from './dto/create-booking.dto';
-import { UpdateBookingDto } from './dto/update-booking.dto';
+import { Booking } from './entities/booking.entity';
 
 @Injectable()
 export class BookingsService {
-  create(createBookingDto: CreateBookingDto) {
-    return 'This action adds a new booking';
+  constructor(
+    @InjectRepository(Booking) private bookingRepo: Repository<Booking>,
+    private usersService: UsersService,
+  ) {}
+
+  async create(userId: number, createBookingDto: CreateBookingDto) {
+    const { startTime, endTime } = createBookingDto;
+
+    if (startTime >= endTime) {
+      throw new BadRequestException('startTime must be before endTime');
+    }
+
+    const overlappingBooking = await this.bookingRepo.findOne({
+      where: {
+        startTime: LessThan(endTime),
+        endTime: MoreThan(startTime),
+      },
+    });
+
+    if (overlappingBooking) {
+      throw new ConflictException(
+        'This time slot overlaps with an existing booking.',
+      );
+    }
+
+    return this.bookingRepo.save({
+      userId,
+      ...createBookingDto,
+    });
   }
 
   findAll() {
-    return `This action returns all bookings`;
+    return this.bookingRepo.find();
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} booking`;
+  async findAllByUserId(userId: number) {
+    const user = await this.usersService.findById(userId);
+    return this.bookingRepo.find({
+      where: {
+        userId: user.id,
+      },
+    });
   }
 
-  update(id: number, updateBookingDto: UpdateBookingDto) {
-    return `This action updates a #${id} booking`;
+  async remove(id: number) {
+    const booking = await this.findById(id);
+    return this.bookingRepo.remove(booking);
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} booking`;
+  async getUsageSummary() {
+    const bookings = await this.bookingRepo.find({
+      relations: ['user'], // Join the user data
+      order: {
+        userId: 'ASC',
+        startTime: 'DESC',
+      },
+    });
+
+    // Transform the flat list into a grouped object
+    return bookings.reduce((acc, booking) => {
+      const userName = booking.user.name;
+      if (!acc[userName]) acc[userName] = [];
+      acc[userName].push(booking);
+      return acc;
+    }, {});
+  }
+
+  async findById(id: number) {
+    const booking = await this.bookingRepo.findOneBy({
+      id,
+    });
+    if (!booking) throw new NotFoundException('Booking not found');
+    return booking;
   }
 }

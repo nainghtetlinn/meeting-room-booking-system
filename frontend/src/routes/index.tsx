@@ -1,5 +1,6 @@
 import { AdminDashboard } from "#/components/AdminDashboard";
 import { OwnerDashboard } from "#/components/OwnerDashboard";
+import { UserDashboard } from "#/components/UserDashboard";
 import { Badge } from "#/components/ui/badge";
 import { Button } from "#/components/ui/button";
 import {
@@ -44,6 +45,8 @@ function App() {
           <AdminDashboard />
         ) : user?.role === "owner" ? (
           <OwnerDashboard />
+        ) : user?.role === "user" ? (
+          <UserDashboard />
         ) : (
           <Card>
             <CardHeader>

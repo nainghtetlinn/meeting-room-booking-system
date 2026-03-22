@@ -17,11 +17,7 @@ import { AuthGuard } from './guards/auth.guard';
       useFactory: (config: AppConfig) => {
         return {
           type: 'postgres',
-          host: config.host,
-          port: config.port,
-          username: config.username,
-          password: config.password,
-          database: config.database,
+          url: config.database_url,
           entities: [User, Booking],
           synchronize: true,
         };

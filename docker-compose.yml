@@ -6,35 +6,32 @@ services:
     environment:
       POSTGRES_USER: ${DB_USERNAME:-postgres}
       POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
-      POSTGRES_DB: ${DB_DATABASE:-meeting_room}
+      POSTGRES_DB: ${DB_DATABASE:-mrbs_db}
     volumes:
       - db_data:/var/lib/postgresql/data
     ports:
-      - "5432:5432"
+      - "3010:5432"
 
   backend:
     build: ./backend
     environment:
-      DB_HOST: db
-      DB_PORT: 5432
-      DB_USERNAME: ${DB_USERNAME:-postgres}
-      DB_PASSWORD: ${DB_PASSWORD:-postgres}
-      DB_DATABASE: ${DB_DATABASE:-meeting_room}
-      PORT: 3000
+      DB_URL: postgresql://${DB_USERNAME:-postgres}:${DB_PASSWORD:-postgres}@db:5432/${DB_DATABASE:-mrbs_db}
+      SEED_USER_NAME: ${SEED_USER_NAME:-admin}
+      SEED_USER_ROLE: ${SEED_USER_ROLE:-admin}
     depends_on:
       - db
     ports:
-      - "3010:3000"
+      - "3020:3000"
 
   frontend:
     build:
       context: ./frontend
       args:
-        VITE_API_URL: ${VITE_API_URL:-http://localhost:3010}
+        VITE_API_URL: ${VITE_API_URL:-http://localhost:3020}
     depends_on:
       - backend
     ports:
-      - "3020:80"
+      - "3030:80"
 
 volumes:
   db_data:

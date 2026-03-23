@@ -21,6 +21,8 @@ DB_DATABASE=meeting_room
 SEED_USER_NAME=admin
 SEED_USER_ROLE=admin
 
+CORS=["http://localhost:3030"]
+
 # API URL used by the frontend build (browser will call this)
 VITE_API_URL=http://localhost:3020
 ```

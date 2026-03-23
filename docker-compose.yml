@@ -18,6 +18,7 @@ services:
       DB_URL: postgresql://${DB_USERNAME:-postgres}:${DB_PASSWORD:-postgres}@db:5432/${DB_DATABASE:-mrbs_db}
       SEED_USER_NAME: ${SEED_USER_NAME:-admin}
       SEED_USER_ROLE: ${SEED_USER_ROLE:-admin}
+      CORS: ${CORS:-["http://localhost:3030"]}
     depends_on:
       - db
     ports:

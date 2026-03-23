@@ -23,14 +23,15 @@ import {
 } from "#/components/ui/table";
 import { api } from "#/lib/api";
 import type { Booking, User, UserRole } from "#/types";
+import { AxiosError } from "axios";
 import { format } from "date-fns";
+import { Calendar } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { CreateUserDialog } from "./CreateUserDialog";
 import { DeleteBookingDialog } from "./DeleteBookingDialog";
 import { DeleteUserDialog } from "./DeleteUserDialog";
 import { Skeleton } from "./ui/skeleton";
-import { Calendar } from "lucide-react";
 
 export function AdminDashboard() {
   const [users, setUsers] = useState<User[]>([]);
@@ -67,7 +68,9 @@ export function AdminDashboard() {
       await fetchData();
     } catch (error) {
       console.error("Update role failed", error);
-      toast.error("Failed to update user role");
+      if (error instanceof AxiosError) {
+        toast.error(error.response?.data.message || "Something went wrong");
+      }
     } finally {
       setSubmitting(false);
     }

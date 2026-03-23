@@ -3,12 +3,12 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { AbilityFactory, Action } from 'src/ability/ability.factory';
+import { Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
-import { Repository } from 'typeorm';
-import { AbilityFactory, Action } from 'src/ability/ability.factory';
 
 @Injectable()
 export class UsersService {
@@ -35,6 +35,8 @@ export class UsersService {
 
   async update(id: number, updateUserDto: UpdateUserDto, currentUser: User) {
     this.abilityFactory.checkPermission(currentUser, Action.Update, User);
+    if (id == currentUser.id)
+      throw new BadRequestException('You cannot change your own role.');
     const user = await this.findById(id);
     user.role = updateUserDto.role;
     return this.userRepo.save(user);

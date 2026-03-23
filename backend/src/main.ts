@@ -9,6 +9,8 @@ async function bootstrap() {
   const rawCors = process.env.CORS || '[]';
   const cors = JSON.parse(rawCors) as string[];
 
+  console.log('Allowed origins:', cors);
+
   app.enableCors({
     origin: cors,
   });
